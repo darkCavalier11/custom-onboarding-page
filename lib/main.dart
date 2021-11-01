@@ -81,7 +81,11 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     _fromLeft = MediaQuery.of(context).size.width / 2 - 35;
-    _fromRight = MediaQuery.of(context).size.width / 2 + 35;
+    _fromRight = _buttonReverseAnimationController.value >= 0.5
+        ? MediaQuery.of(context).size.width / 2 -
+            140 * _buttonReverseAnimationController.value +
+            105
+        : MediaQuery.of(context).size.width / 2 + 35;
     return Scaffold(
       body: Container(
         color: _backgroundColor,
