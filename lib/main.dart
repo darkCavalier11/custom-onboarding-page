@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    timeDilation = 7;
+    // timeDilation = 7;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyHome(),
@@ -36,7 +36,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   late double? _fromRight;
   Color _backgroundColor = Colors.white;
   Color _buttonColor = Colors.red;
-  bool _isAnimatiogReverse = false;
+  bool _isAnimatingReverse = false;
 
   @override
   void initState() {
@@ -52,17 +52,17 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
     _buttonAnimationForward = Tween<double>(begin: 70, end: 800000).animate(
       CurvedAnimation(
         parent: _buttonForwardAnimationController,
-        curve: Curves.fastOutSlowIn,
+        curve: Cubic(1, 0, 1, 0),
       ),
     )..addListener(
         () {
           setState(() {});
         },
       );
-    _buttonAnimationReverse = Tween<double>(begin: 1000, end: 70).animate(
+    _buttonAnimationReverse = Tween<double>(begin: 800000, end: 70).animate(
       CurvedAnimation(
         parent: _buttonReverseAnimationController,
-        curve: Curves.fastOutSlowIn,
+        curve: Cubic(0, 1, 0, 1),
       ),
     )..addListener(
         () {
@@ -89,8 +89,8 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
           alignment: Alignment.center,
           children: [
             Positioned(
-              right: _isAnimatiogReverse ? _fromRight : null,
-              left: !(_isAnimatiogReverse) ? _fromLeft : null,
+              right: _isAnimatingReverse ? _fromRight : null,
+              left: !(_isAnimatingReverse) ? _fromLeft : null,
               child: GestureDetector(
                 onTap: () {
                   _buttonForwardAnimationController.forward();
@@ -99,8 +99,17 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
                       setState(() {
                         _backgroundColor = Colors.red;
                         _buttonColor = Colors.white;
-                        _buttonForwardAnimationController.reverse();
-                        _isAnimatiogReverse = true;
+                        _buttonReverseAnimationController.forward();
+                        _isAnimatingReverse = true;
+                      });
+                    }
+                  });
+                  _buttonReverseAnimationController.addStatusListener((status) {
+                    if (status == AnimationStatus.completed) {
+                      setState(() {
+                        _isAnimatingReverse = false;
+                        _buttonForwardAnimationController.reset();
+                        _buttonReverseAnimationController.reset();
                       });
                     }
                   });
