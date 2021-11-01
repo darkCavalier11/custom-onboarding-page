@@ -49,7 +49,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       vsync: this,
       duration: Duration(milliseconds: 500),
     );
-    _buttonAnimationForward = Tween<double>(begin: 70, end: 800000).animate(
+    _buttonAnimationForward = Tween<double>(begin: 70, end: 40000).animate(
       CurvedAnimation(
         parent: _buttonForwardAnimationController,
         curve: Cubic(1, 0, 1, 0),
@@ -59,7 +59,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
           setState(() {});
         },
       );
-    _buttonAnimationReverse = Tween<double>(begin: 800000, end: 70).animate(
+    _buttonAnimationReverse = Tween<double>(begin: 40000, end: 70).animate(
       CurvedAnimation(
         parent: _buttonReverseAnimationController,
         curve: Cubic(0, 1, 0, 1),
