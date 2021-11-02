@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    timeDilation = 7;
+    // timeDilation = 7;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyHome(),
@@ -34,6 +34,9 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
 
   late double? _fromLeft;
   late double? _fromRight;
+
+  late Function(AnimationStatus) _forwardListener;
+  late Function(AnimationStatus) _reverseListener;
   Color _backgroundColor = Colors.white;
   Color _buttonColor = Colors.redAccent;
   bool _isAnimatingReverse = false;
@@ -76,6 +79,33 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
           setState(() {});
         },
       );
+
+    _forwardListener = (status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _backgroundColor = _buttonColor;
+          _buttonColor = _colors[(_colorIndex) % _colors.length];
+          _buttonReverseAnimationController.forward();
+          _isAnimatingReverse = true;
+          _buttonForwardAnimationController
+              .removeStatusListener(_forwardListener);
+        });
+      }
+    };
+
+    _reverseListener = (status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _isAnimatingReverse = false;
+          _buttonForwardAnimationController.reset();
+          _buttonReverseAnimationController.reset();
+          _colorIndex++;
+          _buttonColor = _colors[(_colorIndex + 1) % _colors.length];
+          _buttonReverseAnimationController
+              .removeStatusListener(_reverseListener);
+        });
+      }
+    };
   }
 
   @override
@@ -105,29 +135,10 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
               child: GestureDetector(
                 onTap: () {
                   _buttonForwardAnimationController.forward();
-                  _buttonForwardAnimationController.removeStatusListener((status) {
-                    if (status == AnimationStatus.completed) {
-                      print('animation completed');
-                      setState(() {
-                        _backgroundColor = _buttonColor;
-                        _buttonColor = _colors[(_colorIndex) % _colors.length];
-                        _buttonReverseAnimationController.forward();
-                        _isAnimatingReverse = true;
-                      });
-                    }
-                  });
-                  _buttonReverseAnimationController.removeStatusListener((status) {
-                    if (status == AnimationStatus.completed) {
-                      setState(() {
-                        _isAnimatingReverse = false;
-                        _buttonForwardAnimationController.reset();
-                        _buttonReverseAnimationController.reset();
-                        _colorIndex++;
-                        _buttonColor =
-                            _colors[(_colorIndex + 1) % _colors.length];
-                      });
-                    }
-                  });
+                  _buttonForwardAnimationController
+                      .addStatusListener(_forwardListener);
+                  _buttonReverseAnimationController
+                      .addStatusListener(_reverseListener);
                 },
                 child: Container(
                   height: _buttonReverseAnimationController.isAnimating ||
