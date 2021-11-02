@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // timeDilation = 7;
+    timeDilation = 7;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyHome(),
@@ -38,8 +38,8 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
 
   late Function(AnimationStatus) _forwardListener;
   late Function(AnimationStatus) _reverseListener;
-  Color _backgroundColor = Colors.white;
-  Color _buttonColor = Colors.redAccent;
+  Color _backgroundColor = Color(0xffffbfdf);
+  Color _buttonColor = Color(0xff0145D0);
   bool _isAnimatingReverse = false;
 
   final List<Color> _colors = [
