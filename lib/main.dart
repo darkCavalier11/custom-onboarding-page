@@ -26,6 +26,7 @@ class MyHome extends StatefulWidget {
 }
 
 class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
+  final double _buttonHeight = 100;
   late final AnimationController _buttonForwardAnimationController;
   late final AnimationController _buttonReverseAnimationController;
 
@@ -41,10 +42,10 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   Color _buttonColor = Colors.redAccent;
   bool _isAnimatingReverse = false;
 
-  List<Color> _colors = [
-    Colors.white,
-    Colors.redAccent,
-    Colors.deepPurpleAccent
+  final List<Color> _colors = [
+    Color(0xffffbfdf),
+    Color(0xff0145D0),
+    Colors.white
   ];
   int _colorIndex = 0;
 
@@ -59,26 +60,28 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       vsync: this,
       duration: Duration(milliseconds: 500),
     );
-    _buttonAnimationForward = Tween<double>(begin: 70, end: 40000).animate(
+    _buttonAnimationForward =
+        Tween<double>(begin: _buttonHeight, end: 40000).animate(
       CurvedAnimation(
         parent: _buttonForwardAnimationController,
         curve: Cubic(1, 0, 1, 0),
       ),
     )..addListener(
-        () {
-          setState(() {});
-        },
-      );
-    _buttonAnimationReverse = Tween<double>(begin: 40000, end: 70).animate(
+            () {
+              setState(() {});
+            },
+          );
+    _buttonAnimationReverse =
+        Tween<double>(begin: 40000, end: _buttonHeight).animate(
       CurvedAnimation(
         parent: _buttonReverseAnimationController,
         curve: Cubic(0, 1, 0, 1),
       ),
     )..addListener(
-        () {
-          setState(() {});
-        },
-      );
+            () {
+              setState(() {});
+            },
+          );
 
     _forwardListener = (status) {
       if (status == AnimationStatus.completed) {
@@ -117,12 +120,12 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    _fromLeft = MediaQuery.of(context).size.width / 2 - 35;
+    _fromLeft = MediaQuery.of(context).size.width / 2 - _buttonHeight / 2;
     _fromRight = _buttonReverseAnimationController.value >= 0.5
         ? MediaQuery.of(context).size.width / 2 -
-            140 * _buttonReverseAnimationController.value +
-            105
-        : MediaQuery.of(context).size.width / 2 + 35;
+            2 * _buttonHeight * _buttonReverseAnimationController.value +
+            (3 * _buttonHeight) / 2
+        : MediaQuery.of(context).size.width / 2 + _buttonHeight / 2;
     return Scaffold(
       body: Container(
         color: _backgroundColor,
@@ -140,22 +143,30 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
                   _buttonReverseAnimationController
                       .addStatusListener(_reverseListener);
                 },
-                child: Container(
-                  height: _buttonReverseAnimationController.isAnimating ||
-                          _buttonForwardAnimationController.isCompleted
-                      ? _buttonAnimationReverse.value
-                      : _buttonAnimationForward.value,
-                  width: _buttonReverseAnimationController.isAnimating ||
-                          _buttonForwardAnimationController.isCompleted
-                      ? _buttonAnimationReverse.value
-                      : _buttonAnimationForward.value,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _buttonColor,
-                  ),
-                  child: Center(
-                    child: Icon(Icons.arrow_back_ios_rounded),
-                  ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 350),
+                    Container(
+                      height: _buttonReverseAnimationController.isAnimating ||
+                              _buttonForwardAnimationController.isCompleted
+                          ? _buttonAnimationReverse.value
+                          : _buttonAnimationForward.value,
+                      width: _buttonReverseAnimationController.isAnimating ||
+                              _buttonForwardAnimationController.isCompleted
+                          ? _buttonAnimationReverse.value
+                          : _buttonAnimationForward.value,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _buttonColor,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: _backgroundColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
