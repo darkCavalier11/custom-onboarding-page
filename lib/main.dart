@@ -96,11 +96,14 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       duration: Duration(milliseconds: 200),
     );
 
-    _buttonSizeAnimation = Tween<double>(begin: 0, end: _buttonHeight)
-        .animate(_buttonSizeAnimationController)
-          ..addListener(() {
-            setState(() {});
-          });
+    _buttonSizeAnimation = Tween<double>(begin: 0, end: _buttonHeight).animate(
+      CurvedAnimation(
+        parent: _buttonSizeAnimationController,
+        curve: Curves.fastOutSlowIn,
+      ),
+    )..addListener(() {
+        setState(() {});
+      });
 
     _forwardListener = (status) {
       if (status == AnimationStatus.completed) {
