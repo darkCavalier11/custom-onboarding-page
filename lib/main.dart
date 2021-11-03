@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    timeDilation = 7;
+    // timeDilation = 7;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyHome(),
@@ -29,23 +29,27 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   final double _buttonHeight = 100;
   late final AnimationController _buttonForwardAnimationController;
   late final AnimationController _buttonReverseAnimationController;
+  late final AnimationController _buttonSizeAnimationController;
 
   late final Animation _buttonAnimationForward;
   late final Animation _buttonAnimationReverse;
+  late final Animation _buttonSizeAnimation;
 
   late double? _fromLeft;
   late double? _fromRight;
 
   late Function(AnimationStatus) _forwardListener;
   late Function(AnimationStatus) _reverseListener;
+  late Function(AnimationStatus) _buttonStatusListener;
   Color _backgroundColor = Color(0xffffbfdf);
   Color _buttonColor = Color(0xff0145D0);
   bool _isAnimatingReverse = false;
+  bool _isAnimating = false;
 
   final List<Color> _colors = [
     Color(0xffffbfdf),
     Color(0xff0145D0),
-    Colors.white
+    Colors.white,
   ];
   int _colorIndex = 0;
 
@@ -79,9 +83,24 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       ),
     )..addListener(
             () {
-              setState(() {});
+              setState(() {
+                if (_buttonReverseAnimationController.value > 0.9 &&
+                    !_buttonSizeAnimationController.isAnimating) {
+                  _buttonSizeAnimationController.forward();
+                }
+              });
             },
           );
+    _buttonSizeAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+    );
+
+    _buttonSizeAnimation = Tween<double>(begin: 0, end: _buttonHeight)
+        .animate(_buttonSizeAnimationController)
+          ..addListener(() {
+            setState(() {});
+          });
 
     _forwardListener = (status) {
       if (status == AnimationStatus.completed) {
@@ -100,12 +119,23 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed) {
         setState(() {
           _isAnimatingReverse = false;
+          _isAnimating = false;
           _buttonForwardAnimationController.reset();
           _buttonReverseAnimationController.reset();
           _colorIndex++;
-          _buttonColor = _colors[(_colorIndex + 1) % _colors.length];
           _buttonReverseAnimationController
               .removeStatusListener(_reverseListener);
+        });
+      }
+    };
+
+    _buttonStatusListener = (status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _buttonColor = _colors[(_colorIndex + 1) % _colors.length];
+          _buttonSizeAnimationController
+              .removeStatusListener(_buttonStatusListener);
+          _buttonSizeAnimationController.reset();
         });
       }
     };
@@ -115,6 +145,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   void dispose() {
     _buttonForwardAnimationController.dispose();
     _buttonReverseAnimationController.dispose();
+    _buttonSizeAnimationController.dispose();
     super.dispose();
   }
 
@@ -137,34 +168,64 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
               left: !(_isAnimatingReverse) ? _fromLeft : null,
               child: GestureDetector(
                 onTap: () {
+                  if (_isAnimating ||
+                      _buttonSizeAnimationController.isAnimating) return;
                   _buttonForwardAnimationController.forward();
+                  _isAnimating = true;
                   _buttonForwardAnimationController
                       .addStatusListener(_forwardListener);
                   _buttonReverseAnimationController
                       .addStatusListener(_reverseListener);
+                  _buttonSizeAnimationController
+                      .addStatusListener(_buttonStatusListener);
                 },
                 child: Column(
                   children: [
                     const SizedBox(height: 350),
-                    Container(
-                      height: _buttonReverseAnimationController.isAnimating ||
-                              _buttonForwardAnimationController.isCompleted
-                          ? _buttonAnimationReverse.value
-                          : _buttonAnimationForward.value,
-                      width: _buttonReverseAnimationController.isAnimating ||
-                              _buttonForwardAnimationController.isCompleted
-                          ? _buttonAnimationReverse.value
-                          : _buttonAnimationForward.value,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _buttonColor,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: _backgroundColor,
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          height: _buttonReverseAnimationController
+                                      .isAnimating ||
+                                  _buttonForwardAnimationController.isCompleted
+                              ? _buttonAnimationReverse.value
+                              : _buttonAnimationForward.value,
+                          width: _buttonReverseAnimationController
+                                      .isAnimating ||
+                                  _buttonForwardAnimationController.isCompleted
+                              ? _buttonAnimationReverse.value
+                              : _buttonAnimationForward.value,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _buttonColor,
+                          ),
                         ),
-                      ),
+                        if (!_isAnimating)
+                          Container(
+                            height: _buttonSizeAnimationController.isAnimating
+                                ? _buttonSizeAnimation.value
+                                : _buttonHeight,
+                            width: _buttonSizeAnimationController.isAnimating
+                                ? _buttonSizeAnimation.value
+                                : _buttonHeight,
+                            decoration: BoxDecoration(
+                              color:
+                                  _colors[(_colorIndex + 1) % _colors.length],
+                              borderRadius:
+                                  BorderRadius.circular(_buttonHeight),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                color: _backgroundColor,
+                                size: _buttonSizeAnimationController.isAnimating
+                                    ? _buttonSizeAnimation.value / 4
+                                    : _buttonHeight / 4,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
