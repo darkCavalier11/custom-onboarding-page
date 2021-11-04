@@ -1,3 +1,5 @@
+import 'package:carousel_slider/carousel_controller.dart';
+import 'package:day006/image_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -27,22 +29,27 @@ class MyHome extends StatefulWidget {
 
 class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
   final double _buttonHeight = 100;
+
   /// for animation from small to large radius
   late final AnimationController _buttonForwardAnimationController;
+
   /// for animation from large radius to [_buttonHeight]
   late final AnimationController _buttonReverseAnimationController;
-  /// Used for animating overlay button on top of the button(the radius animating button) 
-  /// that actually getting animated. This animation helps to give a scale transition at the 
+
+  /// Used for animating overlay button on top of the button(the radius animating button)
+  /// that actually getting animated. This animation helps to give a scale transition at the
   /// end of the revserse animation.
   late final AnimationController _buttonSizeAnimationController;
+
+  late final CarouselController _carouselController;
 
   late final Animation _buttonAnimationForward;
   late final Animation _buttonAnimationReverse;
   late final Animation _buttonSizeAnimation;
 
-  /// as the button's radius increases its distance from the left 
+  /// as the button's radius increases its distance from the left
   /// is fixed till it reaces the end, where the button flats out. Now
-  /// [_fromLeft] should have a transition to [_fromRight] such that 
+  /// [_fromLeft] should have a transition to [_fromRight] such that
   /// button ends up in the center.
   late double? _fromLeft;
   late double? _fromRight;
@@ -81,6 +88,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
         Tween<double>(begin: _buttonHeight, end: 40000).animate(
       CurvedAnimation(
         parent: _buttonForwardAnimationController,
+
         /// giving a custom curve that starts very slow and at the end accelerate
         /// quickly.
         curve: Cubic(1, 0, 1, 0),
@@ -101,9 +109,9 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
               setState(() {
                 if (_buttonReverseAnimationController.value > 0.9 &&
                     !_buttonSizeAnimationController.isAnimating) {
-                      /// The scale animation at the end where overlay
-                      /// button pops out of the center of the below button
-                      /// will initiate only after reverse animation completed 90%
+                  /// The scale animation at the end where overlay
+                  /// button pops out of the center of the below button
+                  /// will initiate only after reverse animation completed 90%
                   _buttonSizeAnimationController.forward();
                 }
               });
@@ -127,7 +135,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed) {
         /// When forward animation completed we
         /// set the background color to button color
-        /// setting button color to background color 
+        /// setting button color to background color
         /// starting reverse animation
         /// setting [_isAnimatingReverse] to true which handles [_fromRight] value
         setState(() {
@@ -165,6 +173,8 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
         });
       }
     };
+
+    _carouselController = CarouselController();
   }
 
   @override
@@ -177,16 +187,17 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    /// [_fromLeft] is the exact horizontal 
-    /// center of the screen, means the center of the button is 
+    /// [_fromLeft] is the exact horizontal
+    /// center of the screen, means the center of the button is
     /// at the horizontal center of the screen. That means the left border
     /// at [MediaQuery.of(context).size.width / 2 + _buttonHeight / 2] from right
     _fromLeft = MediaQuery.of(context).size.width / 2 - _buttonHeight / 2;
+
     /// [_fromRight] changes dynamically when [_buttonReverseAnimationController] reaches
     /// half to make the animation look smooth. It make a linear transition from
     /// (W/2 + w/2) -> (W/2 - w/2)
     /// W = screen width
-    /// w = button width 
+    /// w = button width
     _fromRight = _buttonReverseAnimationController.value >= 0.5
         ? MediaQuery.of(context).size.width / 2 -
             2 * _buttonHeight * _buttonReverseAnimationController.value +
@@ -213,14 +224,15 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
                       .addStatusListener(_reverseListener);
                   _buttonSizeAnimationController
                       .addStatusListener(_buttonStatusListener);
+                  _carouselController.nextPage();
                 },
                 child: Column(
                   children: [
-                    const SizedBox(height: 350),
+                    const SizedBox(height: 550),
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        /// The scaling button 
+                        /// The scaling button
                         Container(
                           height: _buttonReverseAnimationController
                                       .isAnimating ||
@@ -237,6 +249,7 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
                             color: _buttonColor,
                           ),
                         ),
+
                         /// The overlay button
                         if (!_isAnimating)
                           Container(
@@ -295,16 +308,13 @@ class _MyHomeState extends State<MyHome> with TickerProviderStateMixin {
               top: 20,
             ),
             Positioned(
-              top: 300,
+              top: 120,
               child: Container(
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  children: [
-                    Icon(Icons.add),
-                    const SizedBox(height: 50),
-                    Text('Add an alarm'),
-                  ],
+                child: ImageCarousel(
+                  carouselController: _carouselController,
                 ),
+                height: 600,
+                width: MediaQuery.of(context).size.width,
               ),
             ),
           ],
